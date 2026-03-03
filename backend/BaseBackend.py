@@ -1,6 +1,8 @@
 class DataBase:
     def __init__(self, name):
         self.tables = {}
+        if not isinstance(name, str):
+            raise TypeError("name must be a string")
         self.name = name
 
     def add_table(self, table, table_name: str):
@@ -10,9 +12,11 @@ class DataBase:
             else:
                 self.tables[table_name] = table
         else:
-            raise Exception("Unknown format: {} {}".format(type(table_name), type(table)))
+            raise TypeError("table name must be a Table\ntable_name must be a string")
 
     def create_table(self, table_name: str="unknown", **table_header):
+        for key in table_header:
+            table_header[key] = {"type": table_header[key]}
         table = Table(**table_header)
         self.tables[table_name] = table
 
@@ -22,21 +26,21 @@ class DataBase:
         else:
             raise Exception("Unknown table: {}".format(table_name))
 
-    def delete_rows(self, table_name: str, **filter_cols):
+    def delete_from(self, table_name: str, **filter_cols):
         if table_name in self.tables:
             self.tables[table_name].delete(**filter_cols)
         else:
             raise Exception("Unknown table: {}".format(table_name))
 
-    def add_row(self, table_name, **cols):
+    def insert_into(self, table_name, **cols):
         if table_name in self.tables:
             self.tables[table_name].add(**cols)
         else:
             raise Exception("Unknown table: {}".format(table_name))
 
-    def update_rows(self, table_name: str, filter_col_name, filter_col_value, **cols):
+    def update_set(self, table_name: str, filter_col_name, filter_col_value, **cols):
         if table_name in self.tables:
-            self.tables[table_name].update(filter_col_value, filter_col_name, **cols)
+            self.tables[table_name].update(filter_col_name=filter_col_name, filter_col_value=filter_col_value, **cols)
         else:
             raise Exception("Unknown table: {}".format(table_name))
 
@@ -90,7 +94,6 @@ class Table:
                 raise Exception("Unknown column: {}".format(col_name))
         self.matrix_data.append(row)
 
-
     def delete(self, **filter_cols):
         for col_name, value in filter_cols.items():
             if col_name in self.table_header:
@@ -105,7 +108,7 @@ class Table:
         if filter_col_name in self.table_header:
             filter_col_index = self.table_header[filter_col_name]["index"]
             for row in self.matrix_data:
-                if row[filter_col_index] == self.check_type(filter_col_name["name"], filter_col_value):
+                if row[filter_col_index] == self.check_type(filter_col_name, filter_col_value):
                     for col_name, value in cols.items():
                         index = self.table_header[col_name]["index"]
                         row[index] = self.check_type(col_name, value)
@@ -117,4 +120,4 @@ class Table:
         if isinstance(value, self.table_header[col_name]["type"]):
             return value
         else:
-            raise Exception("Unknown type: {}".format(type(value)))
+            raise TypeError('value must be a {}'.format(self.table_header[col_name]["type"]))
