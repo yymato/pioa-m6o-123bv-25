@@ -16,9 +16,9 @@ class DataBase:
         table = Table(**table_header)
         self.tables[table_name] = table
 
-    def select_from(self, table_name: str, **filter_cols):
+    def select_from(self, table_name: str, return_all_rows=False, **filter_cols):
         if table_name in self.tables:
-            return self.tables[table_name].select(**filter_cols)
+            return self.tables[table_name].select(return_all_rows, **filter_cols)
         else:
             raise Exception("Unknown table: {}".format(table_name))
 
@@ -57,21 +57,26 @@ class Table:
     def __init__(self, **table_header):
         self.table_header = {}
         self.matrix_data = []
-        self.rows_len = 0
 
-        for i, col_name, col_property in enumerate(table_header.items()):
+        for i, (col_name, col_property) in enumerate(table_header.items()):
             col_property["index"] = i
             self.table_header[col_name] = col_property
-            self.rows_len += 1
 
-    def select(self, **filter_cols):
-        result = []
-        for col_name, value in filter_cols.items():
-            if col_name in self.table_header:
-                index = self.table_header[col_name]["index"]
-                for row in self.matrix_data:
+        self.rows_len = len(self.table_header)
+
+    def select(self, return_all_rows=False, **filter_cols):
+        result = list()
+        if return_all_rows:
+            return self.matrix_data.copy()
+
+        for row in self.matrix_data:
+
+            for col_name, value in filter_cols.items():
+                if col_name in self.table_header:
+                    index = self.table_header[col_name]["index"]
                     if row[index] == self.check_type(col_name, value):
                         result.append(row)
+                        break
 
         return result
 
@@ -113,7 +118,3 @@ class Table:
             return value
         else:
             raise Exception("Unknown type: {}".format(type(value)))
-
-
-
-
