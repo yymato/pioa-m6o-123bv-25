@@ -1,7 +1,7 @@
 import ast
-
 from backend.BaseBackend import DataBase
-#
+
+
 # CREATE TABLE users (id int, username str)
 # INSERT INTO users (id, username) VALUES (1, 'ymato')
 # SELECT FROM users WHERE return_all_rows=true
@@ -10,7 +10,7 @@ from backend.BaseBackend import DataBase
 # SELECT FROM table_name WHERE colum=value Поддерживается только равенство, знаки больше меньше нельзя. Все ыфильтры применяются со знаком или
 # DELETE FROM users WHERE id=1
 
-a = {
+dict_types = {
     'int': int,
     'float': float,
     'str': str,
@@ -20,6 +20,7 @@ a = {
     'tuple': tuple,
     'bytes': bytes,
 }
+
 
 def strip_bracket(s):
     if s[0] == '(':
@@ -32,10 +33,9 @@ def strip_bracket(s):
         s = s[:-1]
     return s
 
+
 def main():
-
     db = DataBase("Base")
-
 
     while True:
         user_input = input()
@@ -51,14 +51,14 @@ def main():
                     table_name = user_input[1]
 
                     try:
-                        columns = {strip_bracket(user_input[2 + i]): a[strip_bracket(user_input[2 + 1 + i])] for i in range(0, len(user_input[2:]), 2)}
+                        columns = {strip_bracket(user_input[2 + i]): dict_types[strip_bracket(user_input[2 + 1 + i])]
+                                   for i in range(0, len(user_input[2:]), 2)}
                     except KeyError:
                         raise TypeError("Type is not valid")
                     db.create_table(table_name=table_name, **columns)
 
                 else:
                     raise SyntaxError("Not valid request")
-
 
             case 'select':
                 if user_input[0].lower() == 'from' and user_input[2].lower() == 'where':
@@ -67,7 +67,7 @@ def main():
                     if 'return_all_rows=true' in map(lambda s: s.lower(), filters):
                         print('\t'.join(db.get_table_header(table_name)))
                         print('\n'.join(map(str, db.select_from(table_name=table_name,
-                                             return_all_rows=True))))
+                                                                return_all_rows=True))))
                     else:
                         filters = {col: ast.literal_eval(value) for col, value in map(lambda s: s.split('='), filters)}
                         print(db.select_from(table_name=table_name,
@@ -83,7 +83,8 @@ def main():
                     col_names[0] = strip_bracket(col_names[0])
                     col_names[-1] = strip_bracket(col_names[-1])
                     try:
-                        values = list(map(lambda m: ast.literal_eval(strip_bracket(m)), user_input[list(map(lambda s: s.lower(), user_input)).index('values') + 1:]))
+                        values = list(map(lambda m: ast.literal_eval(strip_bracket(m)),
+                                          user_input[list(map(lambda s: s.lower(), user_input)).index('values') + 1:]))
                     except ValueError:
                         raise ValueError("Value is not valid")
                     values[-1] = strip_bracket(values[-1])
@@ -99,7 +100,7 @@ def main():
                 where_index = list(map(lambda s: s.lower(), user_input)).index('where')
                 print(user_input, where_index)
                 data = {col: ast.literal_eval(value) for col, value in map(lambda s: s.split('='),
-                                                         user_input[2:where_index])}
+                                                                           user_input[2:where_index])}
                 filter_col = user_input[where_index + 1].split('=')[0]
                 filter_val = ast.literal_eval(user_input[where_index + 1].split('=')[1])
 
@@ -111,7 +112,8 @@ def main():
                 if user_input[0].lower() == 'from':
                     table_name = user_input[1]
                     print(user_input)
-                    filters = {col: ast.literal_eval(value) for col, value in map(lambda s: s.split('='), user_input[3:])}
+                    filters = {col: ast.literal_eval(value) for col, value in
+                               map(lambda s: s.split('='), user_input[3:])}
                     db.delete_from(table_name=table_name, **filters)
 
 

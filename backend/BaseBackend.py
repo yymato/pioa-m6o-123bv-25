@@ -12,7 +12,7 @@ class DataBase:
             else:
                 self.tables[table_name] = table
         else:
-            raise TypeError("table name must be a Table\ntable_name must be a string")
+            raise TypeError("table must be a Table\ntable_name must be a string")
 
     def create_table(self, table_name: str="unknown", **table_header):
         for key in table_header:
