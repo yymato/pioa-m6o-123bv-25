@@ -50,6 +50,10 @@ class DataBase:
     def set_table_name(self, old_table_name, new_table_name):
         self.tables[old_table_name] = new_table_name
 
+    def get_table_header(self, table_name: str):
+        if table_name in self.tables:
+            return self.tables[table_name].get_header()
+
     def get_name(self):
         return self.name
 
@@ -121,3 +125,6 @@ class Table:
             return value
         else:
             raise TypeError('value must be a {}'.format(self.table_header[col_name]["type"]))
+
+    def get_header(self):
+        return self.table_header.copy()
