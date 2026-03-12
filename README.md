@@ -46,7 +46,7 @@ SELECT FROM users WHERE return_all_rows=true
 SELECT FROM users WHERE username='ymato'
 SELECT FROM users WHERE age=25 id=1
 ```
-ВНИМАНИЕ начичие WHERE обязательно. 
+ВНИМАНИЕ начичие WHERE обязательно. Фильтры работают как логическое OR
 
 ### Обновление данных
 
@@ -66,6 +66,8 @@ DELETE FROM table_name WHERE column1=value1 column2=value2 ...
 DELETE FROM users WHERE id=123
 DELETE FROM users WHERE username='ymato' age=26
 ```
+
+Фильтры рабоатют как логическое OR
 
 ## Использование из кода
 
