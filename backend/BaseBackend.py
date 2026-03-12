@@ -54,12 +54,6 @@ class DataBase:
         if table_name in self.tables:
             return self.tables[table_name].get_header()
 
-    def get_name(self):
-        return self.name
-
-    def set_name(self, name):
-        self.name = name
-
 
 class Table:
     def __init__(self, **table_header):

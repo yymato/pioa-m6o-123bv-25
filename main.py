@@ -66,8 +66,8 @@ def main():
                     filters = user_input[3:]
                     if 'return_all_rows=true' in map(lambda s: s.lower(), filters):
                         print('\t'.join(db.get_table_header(table_name)))
-                        print('\n'.join(map(lambda lst: '\t'.join(map(str, lst)), db.select_from(table_name=table_name,
-                                                                return_all_rows=True))))
+                        print('\n'.join(map(lambda lst: '\t'.join(map(str, lst)),
+                                            db.select_from(table_name=table_name, return_all_rows=True))))
                     else:
                         filters = {col: ast.literal_eval(value) for col, value in map(lambda s: s.split('='), filters)}
                         print('\t'.join(db.get_table_header(table_name)))
