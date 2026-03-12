@@ -5,7 +5,7 @@ class DataBase:
             raise TypeError("name must be a string")
         self.name = name
 
-    def add_table(self, table, table_name: str):
+    def add_table(self, table, table_name):
         if isinstance(table, Table) and isinstance(table_name, str):
             if table_name in self.tables:
                 raise Exception(f"Table {table_name} already exists")
@@ -20,13 +20,13 @@ class DataBase:
         table = Table(**table_header)
         self.tables[table_name] = table
 
-    def select_from(self, table_name: str, return_all_rows=False, **filter_cols):
+    def select_from(self, table_name, return_all_rows=False, **filter_cols):
         if table_name in self.tables:
             return self.tables[table_name].select(return_all_rows, **filter_cols)
         else:
             raise Exception("Unknown table: {}".format(table_name))
 
-    def delete_from(self, table_name: str, **filter_cols):
+    def delete_from(self, table_name, **filter_cols):
         if table_name in self.tables:
             self.tables[table_name].delete(**filter_cols)
         else:
@@ -38,7 +38,7 @@ class DataBase:
         else:
             raise Exception("Unknown table: {}".format(table_name))
 
-    def update_set(self, table_name: str, filter_col_name, filter_col_value, **cols):
+    def update_set(self, table_name, filter_col_name, filter_col_value, **cols):
         if table_name in self.tables:
             self.tables[table_name].update(filter_col_name=filter_col_name, filter_col_value=filter_col_value, **cols)
         else:
@@ -50,7 +50,7 @@ class DataBase:
     def set_table_name(self, old_table_name, new_table_name):
         self.tables[old_table_name] = new_table_name
 
-    def get_table_header(self, table_name: str):
+    def get_table_header(self, table_name):
         if table_name in self.tables:
             return self.tables[table_name].get_header()
         else:
@@ -116,7 +116,7 @@ class Table:
         else:
             raise Exception("Unknown column: {}".format(filter_col_name))
 
-    def check_type(self, col_name: str, value):
+    def check_type(self, col_name, value):
         if isinstance(value, self.table_header[col_name]["type"]):
             return value
         else:
