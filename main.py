@@ -66,12 +66,13 @@ def main():
                     filters = user_input[3:]
                     if 'return_all_rows=true' in map(lambda s: s.lower(), filters):
                         print('\t'.join(db.get_table_header(table_name)))
-                        print('\n'.join(map(str, db.select_from(table_name=table_name,
+                        print('\n'.join(map(lambda lst: '\t'.join(map(str, lst)), db.select_from(table_name=table_name,
                                                                 return_all_rows=True))))
                     else:
                         filters = {col: ast.literal_eval(value) for col, value in map(lambda s: s.split('='), filters)}
-                        print(db.select_from(table_name=table_name,
-                                             **filters))
+                        print('\t'.join(db.get_table_header(table_name)))
+                        print('\n'.join(map(lambda lst: '\t'.join(map(str, lst)), db.select_from(table_name=table_name,
+                                             **filters))))
                 else:
                     raise SyntaxError("Not valid request")
 
@@ -80,14 +81,14 @@ def main():
                 if user_input[0].lower() == 'into':
                     table_name = user_input[1]
                     col_names = user_input[2:list(map(lambda s: s.lower(), user_input)).index('values')]
-                    col_names[0] = strip_bracket(col_names[0])
-                    col_names[-1] = strip_bracket(col_names[-1])
+                    col_names = list(map(strip_bracket, col_names))
                     try:
-                        values = list(map(lambda m: ast.literal_eval(strip_bracket(m)),
+                        print(user_input[list(map(lambda s: s.lower(), user_input)).index('values') + 1:])
+                        values = list(map(strip_bracket,
                                           user_input[list(map(lambda s: s.lower(), user_input)).index('values') + 1:]))
+                        values = list(map(ast.literal_eval, values))
                     except ValueError:
                         raise ValueError("Value is not valid")
-                    values[-1] = strip_bracket(values[-1])
                     data = {col_name: value for col_name, value in zip(col_names, values)}
 
                     db.insert_into(table_name=table_name, **data)
