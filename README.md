@@ -1,5 +1,5 @@
 # In-memory база данных
-## точка входа в проект [main.py](main.py)
+## точка входа в проект [main.py](src/db/main.py)
 ## Поддерживаемые типы данных
 
 | Тип | Описание |
@@ -74,7 +74,7 @@ DELETE FROM users WHERE username='ymato' age=26
 ### Инициализация базы данных
 
 ```python
-from backend.BaseBackend import DataBase
+from src.db.backend.BaseBackend import DataBase
 
 db = DataBase("MyDatabase")
 ```

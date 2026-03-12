@@ -53,6 +53,8 @@ class DataBase:
     def get_table_header(self, table_name: str):
         if table_name in self.tables:
             return self.tables[table_name].get_header()
+        else:
+            raise Exception("Unknown table: {}".format(table_name))
 
 
 class Table:

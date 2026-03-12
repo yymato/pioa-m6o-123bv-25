@@ -1,5 +1,5 @@
 import ast
-from backend.BaseBackend import DataBase
+from src.db.backend.BaseBackend import DataBase
 
 
 # CREATE TABLE users (id int, username str)
