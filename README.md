@@ -46,7 +46,7 @@ SELECT FROM users WHERE return_all_rows=true
 SELECT FROM users WHERE username='ymato'
 SELECT FROM users WHERE age=25 id=1
 ```
-ВНИМАНИЕ начичие WHERE обязательно. 
+ВНИМАНИЕ начичие WHERE обязательно. Фильтры работают как логическое OR
 
 ### Обновление данных
 
