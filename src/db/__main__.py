@@ -1,5 +1,3 @@
-import ast
-from src.db.backend.BaseBackend import DataBase
 from src.db.tui import TUI
 
 

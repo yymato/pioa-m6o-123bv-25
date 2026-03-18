@@ -15,10 +15,13 @@ class DataBase:
             raise TypeError("table must be a Table\ntable_name must be a string")
 
     def create_table(self, table_name: str="unknown", **table_header):
-        for key in table_header:
-            table_header[key] = {"type": table_header[key]}
-        table = Table(**table_header)
-        self.tables[table_name] = table
+        if table_name in self.tables:
+            raise Exception(f"Table {table_name} already exists")
+        else:
+            for key in table_header:
+                table_header[key] = {"type": table_header[key]}
+            table = Table(**table_header)
+            self.tables[table_name] = table
 
     def select_from(self, table_name, return_all_rows=False, **filter_cols):
         if table_name in self.tables:
@@ -48,7 +51,9 @@ class DataBase:
         return list(self.tables.keys())
 
     def set_table_name(self, old_table_name, new_table_name):
-        self.tables[old_table_name] = new_table_name
+        self.tables[new_table_name] = self.tables[old_table_name]
+        self.tables.pop(old_table_name)
+
 
     def get_table_header(self, table_name):
         if table_name in self.tables:
@@ -81,6 +86,8 @@ class Table:
                     if row[index] == self.check_type(col_name, value):
                         result.append(row)
                         break
+                else:
+                    raise Exception("Unknown column: {}".format(col_name))
 
         return result
 
@@ -98,9 +105,13 @@ class Table:
         for col_name, value in filter_cols.items():
             if col_name in self.table_header:
                 index = self.table_header[col_name]["index"]
-                for row in self.matrix_data:
+                delete_rows_indexs = []
+                for num, row in enumerate(self.matrix_data):
                     if row[index] == self.check_type(col_name, value):
-                        self.matrix_data.remove(row)
+                        delete_rows_indexs.append(num)
+
+                for i in reversed(delete_rows_indexs):
+                    self.matrix_data.pop(i)
             else:
                 raise Exception("Unknown column: {}".format(col_name))
 
