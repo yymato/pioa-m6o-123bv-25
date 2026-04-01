@@ -54,7 +54,6 @@ class DataBase:
         self.tables[new_table_name] = self.tables[old_table_name]
         self.tables.pop(old_table_name)
 
-
     def get_table_header(self, table_name):
         if table_name in self.tables:
             return self.tables[table_name].get_header()

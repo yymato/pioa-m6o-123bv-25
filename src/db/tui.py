@@ -40,6 +40,8 @@ class TUI:
                         self._update(user_input)
                     case 'delete':
                         self._delete(user_input)
+                    case 'exit':
+                        break
             except Exception as e:
                 print(e)
 
