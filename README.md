@@ -1,4 +1,30 @@
 # In-memory база данных
+
+## Схема проекта
+```plain
+pioa_m6o-123bv-25/
+├── src/
+│   ├── db/
+│   ├── backend/
+│   │   ├── __init__.py
+│   │   └── BaseBackend.py
+│   ├── __init__.py
+│   ├── __main__.py
+│   └── tui.py
+│
+├── tests/
+│   ├── db/
+│   ├── backend/
+│   │   ├── __init__.py
+│   │   └── test_database.py
+│   │
+│   ├── __init__.py
+│   └── tui_test.py
+│
+└── README.md
+```
+
+
 ## Поддерживаемые типы данных
 
 | Тип | Описание |
