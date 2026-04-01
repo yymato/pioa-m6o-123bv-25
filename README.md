@@ -1,8 +1,7 @@
 # In-memory база данных
 
 ## Схема проекта
-
-```mermaid
+```plain
 PIOA-M6O-123BV-25/
 ├── src/
 │   │
