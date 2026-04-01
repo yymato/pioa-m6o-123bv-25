@@ -1,3 +1,16 @@
+import json
+
+DICT_TYPES = {
+                        'int': int,
+                        'float': float,
+                        'str': str,
+                        'bool': bool,
+                        'list': list,
+                        'dict': dict,
+                        'tuple': tuple,
+                        'bytes': bytes,
+                    }
+
 class DataBase:
     def __init__(self, name):
         self.tables = {}
@@ -62,15 +75,22 @@ class DataBase:
 
 
 class Table:
-    def __init__(self, **table_header):
-        self.table_header = {}
-        self.matrix_data = []
+    def __init__(self, from_dict=None, **table_header):
+        if not from_dict is None:
+            self.table_header = {}
+            for col_name, col_property in from_dict['table_header'].items():
+                self.table_header[col_name] = {'index': col_property['index'], 'type': DICT_TYPES[col_property['type']]}
+            self.rows_len = from_dict['rows_len']
+            self.matrix_data = from_dict['matrix_data']
+        else:
+            self.table_header = {}
+            self.matrix_data = []
 
-        for i, (col_name, col_property) in enumerate(table_header.items()):
-            col_property["index"] = i
-            self.table_header[col_name] = col_property
+            for i, (col_name, col_property) in enumerate(table_header.items()):
+                col_property["index"] = i
+                self.table_header[col_name] = col_property
 
-        self.rows_len = len(self.table_header)
+            self.rows_len = len(self.table_header)
 
     def select(self, return_all_rows=False, **filter_cols):
         result = list()
@@ -134,3 +154,9 @@ class Table:
 
     def get_header(self):
         return self.table_header.copy()
+
+    def to_dict(self):
+        header = {name: {'type':t['type'].__name__, 'index': t['index']} for name, t in self.table_header.items()} # {id: {type: int}}
+        return {'rows_len': self.rows_len,
+         'matrix_data': self.matrix_data,
+         'table_header': header}
