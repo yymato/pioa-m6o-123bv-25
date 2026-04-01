@@ -1,6 +1,8 @@
 import ast
+import os
 
 from src.db.backend.BaseBackend import DataBase
+from src.db.backend.FileBaseBackend import FileDataBaseJson
 
 
 class TUI:
@@ -15,10 +17,19 @@ class TUI:
                         'tuple': tuple,
                         'bytes': bytes,
                     }
-        self.db = DataBase("Base")
+
 
     def run(self):
-        self.main_loop()
+        user_input = input('Выберите с какой бд работать: \n1. Файловая\n2. Inmemory')
+        if user_input == '1':
+            path = input('Введите путь до файла .json')
+            self.db = FileDataBaseJson(path)
+            if os.path.exists(path):
+                self.db.open_db()
+            self.main_loop()
+        elif user_input == '2':
+            self.db = DataBase('Base')
+            self.main_loop()
 
     def main_loop(self):
         while True:

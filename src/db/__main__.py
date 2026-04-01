@@ -1,5 +1,3 @@
-from src.db.backend.BaseBackend import DataBase
-from src.db.backend.FileBaseBackend import FileDataBaseJson
 from src.db.tui import TUI
 
 def main():
