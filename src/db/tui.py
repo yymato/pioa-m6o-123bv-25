@@ -2,7 +2,7 @@ import ast
 import os
 
 from src.db.backend.BaseBackend import DataBase
-from src.db.backend.FileBaseBackend import FileDataBaseJson
+from src.db.backend.FileBaseBackend import FileDataBaseJson, FileDataBaseCSV
 
 
 class TUI:
@@ -20,10 +20,16 @@ class TUI:
 
 
     def run(self):
-        user_input = input('Выберите с какой бд работать: \n1. Файловая\n2. Inmemory')
+        user_input = input('Выберите с какой бд работать: \n1. Файловая Json\n2. Файловая CSV\n3. Inmemory\n')
         if user_input == '1':
             path = input('Введите путь до файла .json')
             self.db = FileDataBaseJson(path)
+            if os.path.exists(path):
+                self.db.open_db()
+            self.main_loop()
+        elif user_input == '3':
+            path = input('Введите путь до ирректории с файлами.csv')
+            self.db = FileDataBaseCSV(path)
             if os.path.exists(path):
                 self.db.open_db()
             self.main_loop()

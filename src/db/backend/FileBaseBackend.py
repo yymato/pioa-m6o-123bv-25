@@ -68,37 +68,28 @@ class FileDataBaseCSV(DataBase):
         for table_name, table in self.tables.items():
             data = table.to_dict()
             matrix = data['matrix_data']
-            header = [[f'{key}: {data['table_header'][key].__repr__()}' for key in table.table_header]]
-            data = header + table.matrix_data
-            print(data)
-            with open(f"{self.directory}/{table_name}.csv", "w+") as f:
+            header = [[f'{key.__repr__()}: {data['table_header'][key].__repr__()}' for key in table.table_header]]
+            data = header + matrix
+            with open(f"{self.directory}/{table_name}.csv", "w", newline='') as f:
                 csv.writer(f).writerows(data)
 
     def open_db(self):
         files_paths = []
-        print(os.listdir(self.directory))
         for path in os.listdir(self.directory):
             if path.endswith(".csv"):
                 files_paths.append(os.path.join(self.directory, path))
 
-        print(files_paths)
         for path in files_paths:
             with open(path, "r") as f:
                 data = csv.reader(f)
-
-                print('{' + ','.join(next(data)) + '}')
                 header = ast.literal_eval('{' + ','.join(next(data)) + '}')
                 data_matrix = list(map(list, data))
-
                 table = Table(from_dict={
                     'table_header': header,
                     'matrix_data': data_matrix,
                     'rows_len': len(header)
                 })
                 self.tables[path.split("\\")[-1][:-4]] = table
-                print(path)
-
-        print(self.tables)
 
     def create_table(self, *args, **kwargs):
         super().create_table(*args, **kwargs)
