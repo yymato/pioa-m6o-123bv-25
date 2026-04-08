@@ -1,5 +1,6 @@
 from src.db.tui import TUI
 
+
 def main():
     app = TUI()
     app.run()
