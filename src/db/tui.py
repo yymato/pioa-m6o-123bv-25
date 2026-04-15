@@ -21,8 +21,8 @@ class TUI:
         self.main_loop()
 
     def main_loop(self):
-        while True:
-            try:
+        try:
+            while True:
                 user_input = input()
                 if user_input == '\n' or user_input == '':
                     continue
@@ -42,8 +42,9 @@ class TUI:
                         self._delete(user_input)
                     case 'exit':
                         break
-            except Exception as e:
-                print(e)
+        except Exception as e:
+            print(e)
+
 
     def _create_table(self, user_input):
         if user_input[0].lower() == 'table':
@@ -81,12 +82,101 @@ class TUI:
             table_name = user_input[1]
             col_names = user_input[2:list(map(lambda s: s.lower(), user_input)).index('values')]
             col_names = list(map(self.strip_bracket, col_names))
-            try:
-                values = list(map(self.strip_bracket,
-                                  user_input[list(map(lambda s: s.lower(), user_input)).index('values') + 1:]))
-                values = list(map(ast.literal_eval, values))
-            except ValueError:
-                raise ValueError("Value is not valid")
+
+            values = user_input[list(map(lambda s: s.lower(), user_input)).index('values') + 1:]
+            values[0] = values[0][1:]
+            values[-1] = values[-1][:-1]
+            values = ' '.join(values)
+
+            right_bracket, left_bracket = 0, 0
+            is_square_bracket = False
+            is_figure_bracket = False
+            is_circle_bracket = False
+            left_index = 0
+            data = []
+            for i, v in enumerate(values):
+
+                if v == '(':
+                    if not is_circle_bracket:
+                        is_circle_bracket = True
+                        left_bracket = 1
+                        left_index = i
+
+                    else:
+                        left_bracket += 1
+                    continue
+
+                if v == ')':
+                    if not is_circle_bracket:
+                        raise ValueError('Bad request')
+                    else:
+                        right_bracket += 1
+
+                    if right_bracket == left_bracket:
+                        data.append(values[left_index:i + 1])
+                        right_bracket, left_bracket = 0, 0
+                        is_circle_bracket = False
+                    continue
+
+                if v == '[':
+                    if not is_square_bracket:
+                        is_square_bracket = True
+                        left_bracket = 1
+                        left_index = i
+
+                    else:
+                        left_bracket += 1
+                    continue
+
+                if v == ']':
+                    if not is_square_bracket:
+                        raise ValueError('Bad request')
+                    else:
+                        right_bracket += 1
+
+                    if right_bracket == left_bracket:
+                        data.append(values[left_index:i + 1])
+                        right_bracket, left_bracket = 0, 0
+                        is_square_bracket = False
+                    continue
+
+
+                if v == '{':
+                    if not is_figure_bracket:
+                        is_figure_bracket = True
+                        left_bracket = 1
+                        left_index = i
+
+                    else:
+                        left_bracket += 1
+                    continue
+
+
+                if v == '}':
+                    if not is_figure_bracket:
+                        raise ValueError('Bad request')
+                    else:
+                        right_bracket += 1
+
+                    if right_bracket == left_bracket:
+                        data.append(values[left_index:i + 1])
+                        right_bracket, left_bracket = 0, 0
+                        is_square_bracket = False
+
+                    continue
+
+                if is_figure_bracket == is_circle_bracket == is_square_bracket == False:
+                    if len(data) == 0:
+                        data.append(v)
+                    elif not data[-1][-1] in ']}':
+                        data[-1] += v
+
+            values = []
+            for i in data:
+                if not ('[' in i or '{' in i):
+                    values.extend(i.split())
+            values = list(map(ast.literal_eval, values))
+
             data = {col_name: value for col_name, value in zip(col_names, values)}
 
             self.db.insert_into(table_name=table_name, **data)
