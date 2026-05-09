@@ -90,7 +90,7 @@ class Table:
                 else:
                     raise Exception("Unknown column: {}".format(col_name))
 
-        return result
+        return copy.deepcopy(result)
 
     def add(self, **cols):
         row = [None for _ in range(self.rows_len)]
