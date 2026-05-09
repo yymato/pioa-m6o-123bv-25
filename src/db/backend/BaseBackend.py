@@ -1,5 +1,3 @@
-import json
-
 DICT_TYPES = {
                         'int': int,
                         'float': float,
@@ -10,6 +8,9 @@ DICT_TYPES = {
                         'tuple': tuple,
                         'bytes': bytes,
                     }
+
+import copy, json
+
 
 class DataBase:
     def __init__(self, name):
@@ -95,7 +96,7 @@ class Table:
     def select(self, return_all_rows=False, **filter_cols):
         result = list()
         if return_all_rows:
-            return self.matrix_data.copy()
+            return copy.deepcopy(self.matrix_data)
 
         for row in self.matrix_data:
 
@@ -108,7 +109,7 @@ class Table:
                 else:
                     raise Exception("Unknown column: {}".format(col_name))
 
-        return result
+        return copy.deepcopy(result)
 
     def add(self, **cols):
         row = [None for _ in range(self.rows_len)]
@@ -139,6 +140,9 @@ class Table:
             filter_col_index = self.table_header[filter_col_name]["index"]
             for row in self.matrix_data:
                 if row[filter_col_index] == self.check_type(filter_col_name, filter_col_value):
+                    for col_name, value in cols.items():
+                        self.check_type(col_name, value)  # Валидация поля
+
                     for col_name, value in cols.items():
                         index = self.table_header[col_name]["index"]
                         row[index] = self.check_type(col_name, value)

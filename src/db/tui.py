@@ -94,22 +94,75 @@ class TUI:
             raise SyntaxError("Not valid request")
 
     def _insert(self, user_input):
-        if user_input[0].lower() == 'into':
-            table_name = user_input[1]
-            col_names = user_input[2:list(map(lambda s: s.lower(), user_input)).index('values')]
-            col_names = list(map(self.strip_bracket, col_names))
-            try:
-                values = list(map(self.strip_bracket,
-                                  user_input[list(map(lambda s: s.lower(), user_input)).index('values') + 1:]))
-                values = list(map(ast.literal_eval, values))
-            except ValueError:
-                raise ValueError("Value is not valid")
-            data = {col_name: value for col_name, value in zip(col_names, values)}
-
-            self.db.insert_into(table_name=table_name, **data)
-
-        else:
+        if user_input[0].lower() != 'into':
             raise SyntaxError("Not valid request")
+
+        table_name = user_input[1]
+        lowered = [s.lower() for s in user_input]
+
+        try:
+            values_idx = lowered.index('values')
+        except ValueError:
+            raise SyntaxError("Missing VALUES clause")
+
+        col_names = list(map(self.strip_bracket, user_input[2:values_idx]))
+
+        raw_values = user_input[values_idx + 1:]
+
+        if raw_values[0].startswith('('):
+            raw_values[0] = raw_values[0][1:]
+        if raw_values[-1].endswith(')'):
+            raw_values[-1] = raw_values[-1][:-1]
+
+        values_str = ' '.join(raw_values)
+        tokens = []
+        current = ''
+        depth_paren = 0
+        depth_square = 0
+        depth_curly = 0
+
+        for c in values_str:
+            if c == '(':
+                depth_paren += 1
+                current += c
+            elif c == ')':
+                depth_paren -= 1
+                current += c
+            elif c == '[':
+                depth_square += 1
+                current += c
+            elif c == ']':
+                depth_square -= 1
+                current += c
+            elif c == '{':
+                depth_curly += 1
+                current += c
+            elif c == '}':
+                depth_curly -= 1
+                current += c
+            elif c == ' ':
+                if depth_paren == 0 and depth_square == 0 and depth_curly == 0:
+                    if current:
+                        tokens.append(current)
+                        current = ''
+                else:
+                    current += c
+            else:
+                current += c
+
+        if current:
+            tokens.append(current)
+
+        try:
+            values = [ast.literal_eval(tok) for tok in tokens]
+        except (ValueError, SyntaxError) as e:
+            raise ValueError(f"Invalid value literal: {e}")
+
+        if len(col_names) != len(values):
+            raise ValueError("Number of columns does not match number of values")
+
+        data = dict(zip(col_names, values))
+        self.db.insert_into(table_name=table_name, **data)
 
     def _update(self, user_input):
         table_name = user_input[0]
