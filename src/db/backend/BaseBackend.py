@@ -1,0 +1,166 @@
+DICT_TYPES = {
+                        'int': int,
+                        'float': float,
+                        'str': str,
+                        'bool': bool,
+                        'list': list,
+                        'dict': dict,
+                        'tuple': tuple,
+                        'bytes': bytes,
+                    }
+
+import copy, json
+
+
+class DataBase:
+    def __init__(self, name):
+        self.tables = {}
+        if not isinstance(name, str):
+            raise TypeError("name must be a string")
+        self.name = name
+
+    def add_table(self, table, table_name):
+        if isinstance(table, Table) and isinstance(table_name, str):
+            if table_name in self.tables:
+                raise Exception(f"Table {table_name} already exists")
+            else:
+                self.tables[table_name] = table
+        else:
+            raise TypeError("table must be a Table\ntable_name must be a string")
+
+    def create_table(self, table_name: str="unknown", **table_header):
+        if table_name in self.tables:
+            raise Exception(f"Table {table_name} already exists")
+        else:
+            for key in table_header:
+                table_header[key] = {"type": table_header[key]}
+            table = Table(**table_header)
+            self.tables[table_name] = table
+
+    def select_from(self, table_name, return_all_rows=False, **filter_cols):
+        if table_name in self.tables:
+            return self.tables[table_name].select(return_all_rows, **filter_cols)
+        else:
+            raise Exception("Unknown table: {}".format(table_name))
+
+    def delete_from(self, table_name, **filter_cols):
+        if table_name in self.tables:
+            self.tables[table_name].delete(**filter_cols)
+        else:
+            raise Exception("Unknown table: {}".format(table_name))
+
+    def insert_into(self, table_name, **cols):
+        if table_name in self.tables:
+            self.tables[table_name].add(**cols)
+        else:
+            raise Exception("Unknown table: {}".format(table_name))
+
+    def update_set(self, table_name, filter_col_name, filter_col_value, **cols):
+        if table_name in self.tables:
+            self.tables[table_name].update(filter_col_name=filter_col_name, filter_col_value=filter_col_value, **cols)
+        else:
+            raise Exception("Unknown table: {}".format(table_name))
+
+    def get_names_tables(self):
+        return list(self.tables.keys())
+
+    def set_table_name(self, old_table_name, new_table_name):
+        self.tables[new_table_name] = self.tables[old_table_name]
+        self.tables.pop(old_table_name)
+
+    def get_table_header(self, table_name):
+        if table_name in self.tables:
+            return self.tables[table_name].get_header()
+        else:
+            raise Exception("Unknown table: {}".format(table_name))
+
+
+class Table:
+    def __init__(self, from_dict=None, **table_header):
+        if not from_dict is None:
+            self.table_header = {}
+            for col_name, col_property in from_dict['table_header'].items():
+                self.table_header[col_name] = {'index': col_property['index'], 'type': DICT_TYPES[col_property['type']]}
+            self.rows_len = from_dict['rows_len']
+            self.matrix_data = from_dict['matrix_data']
+        else:
+            self.table_header = {}
+            self.matrix_data = []
+
+            for i, (col_name, col_property) in enumerate(table_header.items()):
+                col_property["index"] = i
+                self.table_header[col_name] = col_property
+
+            self.rows_len = len(self.table_header)
+
+    def select(self, return_all_rows=False, **filter_cols):
+        result = list()
+        if return_all_rows:
+            return copy.deepcopy(self.matrix_data)
+
+        for row in self.matrix_data:
+
+            for col_name, value in filter_cols.items():
+                if col_name in self.table_header:
+                    index = self.table_header[col_name]["index"]
+                    if row[index] == self.check_type(col_name, value):
+                        result.append(row)
+                        break
+                else:
+                    raise Exception("Unknown column: {}".format(col_name))
+
+        return copy.deepcopy(result)
+
+    def add(self, **cols):
+        row = [None for _ in range(self.rows_len)]
+        for col_name, value in cols.items():
+            if col_name in self.table_header:
+                col_index = self.table_header[col_name]["index"]
+                row[col_index] = self.check_type(col_name, value)
+            else:
+                raise Exception("Unknown column: {}".format(col_name))
+        self.matrix_data.append(row)
+
+    def delete(self, **filter_cols):
+        for col_name, value in filter_cols.items():
+            if col_name in self.table_header:
+                index = self.table_header[col_name]["index"]
+                delete_rows_indexs = []
+                for num, row in enumerate(self.matrix_data):
+                    if row[index] == self.check_type(col_name, value):
+                        delete_rows_indexs.append(num)
+
+                for i in reversed(delete_rows_indexs):
+                    self.matrix_data.pop(i)
+            else:
+                raise Exception("Unknown column: {}".format(col_name))
+
+    def update(self, filter_col_name, filter_col_value, **cols):
+        if filter_col_name in self.table_header:
+            filter_col_index = self.table_header[filter_col_name]["index"]
+            for row in self.matrix_data:
+                if row[filter_col_index] == self.check_type(filter_col_name, filter_col_value):
+                    for col_name, value in cols.items():
+                        self.check_type(col_name, value)  # Валидация поля
+
+                    for col_name, value in cols.items():
+                        index = self.table_header[col_name]["index"]
+                        row[index] = self.check_type(col_name, value)
+
+        else:
+            raise Exception("Unknown column: {}".format(filter_col_name))
+
+    def check_type(self, col_name, value):
+        if isinstance(value, self.table_header[col_name]["type"]):
+            return value
+        else:
+            raise TypeError('value must be a {}'.format(self.table_header[col_name]["type"]))
+
+    def get_header(self):
+        return self.table_header.copy()
+
+    def to_dict(self):
+        header = {name: {'type':t['type'].__name__, 'index': t['index']} for name, t in self.table_header.items()} # {id: {type: int}}
+        return {'rows_len': self.rows_len,
+         'matrix_data': self.matrix_data,
+         'table_header': header}
